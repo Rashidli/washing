@@ -26,6 +26,8 @@ Route::get('/washings', function (){
 });
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
+Route::post('sendOtp',[AuthController::class,'sendOTP']);
+Route::post('verifyOtp',[AuthController::class,'verifyOTP']);
 
 Route::middleware(['auth:sanctum'])->group(function(){
 
