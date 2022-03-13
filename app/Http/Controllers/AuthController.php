@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SMS;
 use App\Models\User;
 use DOMDocument;
 use Illuminate\Http\JsonResponse;
@@ -12,12 +13,13 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
 
-    public function sendOTP(Request $request)
+    public function sendOTP(Request $request): JsonResponse
     {
         $request->validate([
             'phone' => 'required'
         ]);
 
+        $sms = SMS::query()->orderByDesc('control_id')->first();
         $otpCode = rand(1000, 9999);
         $dom = new DOMDocument('1.0', 'UTF-8');
         $dom->formatOutput = true;
@@ -31,7 +33,7 @@ class AuthController extends Controller
         $result->appendChild($dom->createElement('operation', 'submit'));
         $result->appendChild($dom->createElement('login', 'washing'));
         $result->appendChild($dom->createElement('password', 'w@shin2022!'));
-        $result->appendChild($dom->createElement('controlid', '100'));
+        $result->appendChild($dom->createElement('controlid', "$sms->control_id"));
         $result->appendChild($dom->createElement('title', 'Washing'));
         $result->appendChild($dom->createElement('scheduled', date("Y-m-d H:i:s")));
         $result->appendChild($dom->createElement('isbulk', 'false'));
@@ -71,7 +73,7 @@ class AuthController extends Controller
             $result['message'] = 'error';
             $result['code'] = 400;
         }
-
+        SMS::query()->insert(['control_id' => $sms->control_id + 1]);
         return response()->json($result);
     }
 
@@ -96,18 +98,19 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        $data = $request->validate([
+        $request->validate([
             'name' => 'required|string|max:191',
-            'email' => 'required|email|max:191|unique:users,email',
-            'password' => 'required|string'
+            'email' => 'required|email|max:191',
+            'phone' => 'required'
         ]);
 
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);
-
+        User::query()->where('phone', $request->phone)->update(
+            [
+                'name' => $request->name,
+                'email' => $request->email
+            ]
+        );
+        $user = User::query()->where('phone', $request->phone)->first();
         $token = $user->createToken('washingProjectToken')->plainTextToken;
 
         $response = [

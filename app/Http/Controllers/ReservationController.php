@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reservation;
+use App\Models\SMS;
+use DOMDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -39,6 +41,42 @@ class ReservationController extends Controller
         $reservation->time = $req->time;
 
         $reservation->save();
+        $message = 'Salam';
+        $sms = SMS::query()->orderByDesc('control_id')->first();
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        $dom->formatOutput = true;
+
+        $root = $dom->createElement('request');
+        $dom->appendChild($root);
+
+        $result = $dom->createElement('head');
+        $root->appendChild($result);
+
+        $result->appendChild($dom->createElement('operation', 'submit'));
+        $result->appendChild($dom->createElement('login', 'washing'));
+        $result->appendChild($dom->createElement('password', 'w@shin2022!'));
+        $result->appendChild($dom->createElement('controlid', "$sms->control_id"));
+        $result->appendChild($dom->createElement('title', 'Washing'));
+        $result->appendChild($dom->createElement('scheduled', date("Y-m-d H:i:s")));
+        $result->appendChild($dom->createElement('isbulk', 'false'));
+
+        $result = $dom->createElement('body');
+        $root->appendChild($result);
+        $result->appendChild($dom->createElement('message', $message));
+        $result->appendChild($dom->createElement('msisdn', 'nomre moysik'));
+
+        $xml = $dom->saveXML();
+
+        $curl = curl_init("https://sms.atatexnologiya.az/bulksms/api");
+        curl_setopt_array($curl, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $xml,
+            CURLOPT_RETURNTRANSFER => true
+        ]);
+        $result = curl_exec($curl);
+        curl_close($curl);
+
+        SMS::query()->insert(['control_id' => $sms->control_id + 1]);
     }
 
 

@@ -25,7 +25,7 @@ Route::get('/washings', function (){
    return response()->json($washing);
 });
 Route::post('register', [AuthController::class, 'register']);
-Route::post('login', [AuthController::class, 'login']);
+
 Route::post('sendOtp',[AuthController::class,'sendOTP']);
 Route::post('verifyOtp',[AuthController::class,'verifyOTP']);
 
@@ -35,7 +35,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
     Route::group(['prefix' => 'reservations'], function(){
 
-        Route::get('' ,[ReservationController::class, 'show']);
+        Route::get('/' ,[ReservationController::class, 'show']);
         Route::post('add', [ReservationController::class, 'store']);
 
     });
