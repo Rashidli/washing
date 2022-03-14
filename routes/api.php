@@ -24,6 +24,7 @@ Route::get('/washings', function (){
    $washing = Washing::all();
    return response()->json($washing);
 });
+
 Route::post('register', [AuthController::class, 'register']);
 
 Route::post('sendOtp',[AuthController::class,'sendOTP']);
@@ -37,6 +38,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
         Route::get('/' ,[ReservationController::class, 'show']);
         Route::post('add', [ReservationController::class, 'store']);
+        Route::post('update', [ReservationController::class, 'update']);
 
     });
 

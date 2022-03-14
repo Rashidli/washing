@@ -46,6 +46,7 @@ class WashingController extends Controller
 
     public function update(Request $req, $id)
     {
+
         $washing = Washing::where('id',$id)->firstOrFail();
 
 
